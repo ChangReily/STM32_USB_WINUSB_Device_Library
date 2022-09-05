@@ -14,4 +14,5 @@ https://docs.microsoft.com/zh-tw/windows-hardware/drivers/usbcon/how-to-write-a-
 
 
 FirmwarePackage=STM32Cube FW_F1 V1.8.4
+
 https://github.com/STMicroelectronics/STM32CubeF1
