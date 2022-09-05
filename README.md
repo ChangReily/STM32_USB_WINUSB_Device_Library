@@ -12,6 +12,7 @@ https://docs.microsoft.com/zh-tw/windows-hardware/drivers/usbcon/developing-wind
 
 https://docs.microsoft.com/zh-tw/windows-hardware/drivers/usbcon/how-to-write-a-windows-desktop-app-that-communicates-with-a-usb-device
 
+https://www.usbzh.com/article/detail-1068.html
 
 FirmwarePackage=STM32Cube FW_F1 V1.8.4
 
