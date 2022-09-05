@@ -94,6 +94,8 @@ static void USBD_ClrFeature(USBD_HandleTypeDef *pdev,
 
 static uint8_t USBD_GetLen(uint8_t *buf);
 
+static void USBD_WinUSBGetDescriptor(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+
 /**
   * @}
   */
@@ -121,6 +123,7 @@ USBD_StatusTypeDef  USBD_StdDevReq(USBD_HandleTypeDef *pdev,
     case USB_REQ_TYPE_CLASS:
     case USB_REQ_TYPE_VENDOR:
       pdev->pClass->Setup(pdev, req);
+      USBD_WinUSBGetDescriptor( pdev, req );
       break;
 
     case USB_REQ_TYPE_STANDARD:
@@ -153,6 +156,10 @@ USBD_StatusTypeDef  USBD_StdDevReq(USBD_HandleTypeDef *pdev,
         case USB_REQ_CLEAR_FEATURE:
           USBD_ClrFeature(pdev, req);
           break;
+
+//        case USB_REQ_MS_VENDOR_CODE:
+//        	USBD_WinUSBGetDescriptor( pdev, req );
+//          break;
 
         default:
           USBD_CtlError(pdev, req);
@@ -213,6 +220,10 @@ USBD_StatusTypeDef  USBD_StdItfReq(USBD_HandleTypeDef *pdev,
       break;
 
     default:
+      if ( req->bmRequest == 0xC1 ) {
+        USBD_WinUSBGetDescriptor( pdev, req ); 
+        break;
+      }
       USBD_CtlError(pdev, req);
       break;
   }
@@ -515,6 +526,9 @@ static void USBD_GetDescriptor(USBD_HandleTypeDef *pdev,
             err++;
           }
           break;
+        case 0xEE: // OS String 
+           pbuf = (uint8_t *) pdev->pClass->GetWinUSBOSDescriptor(&len);
+           break;
 
         default:
 #if (USBD_SUPPORT_USER_STRING_DESC == 1U)
@@ -901,6 +915,37 @@ static uint8_t USBD_GetLen(uint8_t *buf)
 
   return len;
 }
+static void USBD_WinUSBGetDescriptor(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+  uint16_t len;
+  uint8_t *pbuf;
+  
+    
+  switch (req->wIndex)
+  { 
+  case WINUSB_INDEX_TYPE_OS_FEATURE_DESC: // compat ID
+    pbuf = pdev->pDesc->GetWinUSBOSFeatureDescriptor(&len);
+    break;
+  case WINUSB_INDEX_TYPE_OS_PROPERTY_DESC:
+    pbuf = pdev->pDesc->GetWinUSBOSPropertyDescriptor(&len);
+    break;
+     
+  default: 
+     USBD_CtlError(pdev , req);
+    return;
+  }
+  if((len != 0)&& (req->wLength != 0))
+  {
+    
+    len = MIN(len , req->wLength);
+    
+    USBD_CtlSendData (pdev, 
+                      pbuf,
+                      len);
+  }
+  
+   
+}   
 /**
   * @}
   */
